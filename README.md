@@ -64,11 +64,15 @@
 不需要手动记复杂命令。  
 如果你在使用 Agent、OpenClaw 或其他类似工具，直接发送下面这句提示词即可：
 
-> 请帮我安装这个技能：[https://github.com/YZDame/headteacher-skill](https://github.com/YZDame/headteacher-skill)
+```bash
+请帮我安装这个技能：https://github.com/YZDame/headteacher-skill
+```
 
 安装完成后，再告诉你的 Agent：
 
-> 请帮我启用班主任.Skill，并先带我完成飞书多维表格的初始化。
+```bash
+请帮我启用班主任.Skill，并先带我完成飞书多维表格的初始化。
+```
 
 如果你后续要使用“按需生成文件”这项能力，还需要本地具备 Office 相关的 Skill 套装，用来处理：
 
@@ -76,19 +80,8 @@
 - `.xlsx`
 - `.pptx`
 
-首选安装来源：
-
-- Anthropic Skills 仓库中的 Office 相关 Skill  
+具体参考: Anthropic Skills 仓库中的 Office 相关 Skill  
   [https://github.com/anthropics/skills/tree/main/skills](https://github.com/anthropics/skills/tree/main/skills)
-
-如果因为网络环境等问题无法安装，备选方案：
-
-- MiniMax 的 Skills 仓库  
-  [https://github.com/MiniMax-AI/skills](https://github.com/MiniMax-AI/skills)
-
-如果本地还没有这些 Skill，也可以直接对 Agent 说：
-
-> 请先帮我安装处理 docx、xlsx、pptx 所需的 Office Skill，再继续启用班主任.Skill。
 
 ## 使用
 

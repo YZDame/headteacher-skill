@@ -56,11 +56,15 @@ You do not need to remember shell commands.
 
 Just send this prompt to your agent tool:
 
-> Please install this skill for me: [https://github.com/YZDame/headteacher-skill](https://github.com/YZDame/headteacher-skill)
+```bash
+Please install this skill for me: https://github.com/YZDame/headteacher-skill
+```
 
 Then tell the agent:
 
-> Please enable Headteacher.Skill and guide me through initializing a Feishu Base workspace first.
+```bash
+Please enable Headteacher.Skill and guide me through initializing a Feishu Base workspace first.
+```
 
 ## Office skills
 
@@ -70,17 +74,9 @@ If you want this skill to generate Office files, your local agent environment sh
 - `.xlsx`
 - `.pptx`
 
-Preferred source:
+Reference:
 
 - Anthropic skills repository: [https://github.com/anthropics/skills/tree/main/skills](https://github.com/anthropics/skills/tree/main/skills)
-
-Fallback source:
-
-- MiniMax skills repository: [https://github.com/MiniMax-AI/skills](https://github.com/MiniMax-AI/skills)
-
-If these skills are missing, you can simply tell your agent:
-
-> Please install the Office skills for docx, xlsx, and pptx first, then continue enabling Headteacher.Skill.
 
 ## Example requests
 
