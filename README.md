@@ -1,87 +1,145 @@
 <div align="center">
 
-# Headteacher.Skill
+# 班主任.Skill
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://python.org)
 [![AgentSkills](https://img.shields.io/badge/AgentSkills-Standard-green)](https://agentskills.io)
 
-A skill for teachers and headteachers who want to manage class data and generate working documents with AI.
+一个面向教师和班主任的工作台 Skill。  
+它的重点不是“模仿老师说话”，而是帮助教师持续管理学生数据，并按需生成日常需要的文件。
+
+[English](README_EN.md)
+
+[安装](#安装) · [使用](#使用) · [工作台模型](#工作台模型)
 
 </div>
 
-## What it is
+---
 
-`Headteacher.Skill` focuses on two core abilities:
+## 这是什么
 
-1. Record, read, and continuously update class data
-2. Generate specific Office files on demand
+`班主任.Skill` 的核心是两种能力：
 
-Typical data work includes:
+1. 数据的记录、读写以及动态读写。  
+   包括一次性导入、日常动态添加、纵向读取某个学生、横向读取部分学生或全班。
+2. 按需生成特定的 Office 文件。  
+   包括排座表、值日表、家长会 PPT，以及其他通知或记录文档。
 
-- one-time import of student rosters and historical records
-- daily updates for scores, behavior, parent communication, and class duties
-- longitudinal reading for one student across time
-- horizontal reading for part of a class or the whole class at one time slice
+第一版默认首选接入 **飞书多维表格**。  
+`Notion` 和 `Obsidian` 暂时作为后续开发方向保留。
 
-Typical file outputs include:
+## 第一版范围
 
-- seat plans
-- duty schedules
-- parent meeting slides
-- other Word / Excel / PowerPoint files based on class data
+### 现在可用
 
-## v1 scope
+- 飞书多维表格工作台初始化
+- 标准班主任数据模型
+- 已有飞书多维表格的迁移检查
+- 本地产物登记
 
-### Available now
+### 后续开发
 
-- Feishu Base as the default backend
-- standard headteacher data model
-- migration inspection for existing Feishu Bases
-- local artifact registry
+- Notion：等待后续开发，计划通过 MCP 的方式连接
+- Obsidian：等待后续开发，计划使用 Obsidian 的 CLI
 
-### Planned later
+## 工作台模型
 
-- Notion, planned later
-- Obsidian, planned later
+第一版围绕这些核心对象展开：
 
-## Install
+- 学生主档
+- 考试批次
+- 成绩明细
+- 成长事件
+- 家校沟通
+- 座位安排
+- 值日安排
+- 班委任命
+- 产物索引
 
-You do not need to remember shell commands.
+飞书多维表格是第一后端，但 Skill 本身真正关心的是班级数据和文件生成能力。
 
-Just send this prompt to your agent tool:
+## 安装
 
-> Please install this skill for me: [https://github.com/YZDame/headteacher-skill](https://github.com/YZDame/headteacher-skill)
+不需要手动记复杂命令。  
+如果你在使用 Agent、OpenClaw 或其他类似工具，直接发送下面这句提示词即可：
 
-Then tell the agent:
+> 请帮我安装这个技能：[https://github.com/YZDame/headteacher-skill](https://github.com/YZDame/headteacher-skill)
 
-> Please enable Headteacher.Skill and guide me through initializing a Feishu Base workspace first.
+安装完成后，再告诉你的 Agent：
 
-## Office skills
+> 请帮我启用班主任.Skill，并先带我完成飞书多维表格的初始化。
 
-If you want this skill to generate Office files, your local agent environment should also have Office-related skills for:
+如果你后续要使用“按需生成文件”这项能力，还需要本地具备 Office 相关的 Skill 套装，用来处理：
 
 - `.docx`
 - `.xlsx`
 - `.pptx`
 
-Preferred source:
+首选安装来源：
 
-- Anthropic skills repository: [https://github.com/anthropics/skills/tree/main/skills](https://github.com/anthropics/skills/tree/main/skills)
+- Anthropic Skills 仓库中的 Office 相关 Skill  
+  [https://github.com/anthropics/skills/tree/main/skills](https://github.com/anthropics/skills/tree/main/skills)
 
-Fallback source:
+如果因为网络环境等问题无法安装，备选方案：
 
-- MiniMax skills repository: [https://github.com/MiniMax-AI/skills](https://github.com/MiniMax-AI/skills)
+- MiniMax 的 Skills 仓库  
+  [https://github.com/MiniMax-AI/skills](https://github.com/MiniMax-AI/skills)
 
-If these skills are missing, you can simply tell your agent:
+如果本地还没有这些 Skill，也可以直接对 Agent 说：
 
-> Please install the Office skills for docx, xlsx, and pptx first, then continue enabling Headteacher.Skill.
+> 请先帮我安装处理 docx、xlsx、pptx 所需的 Office Skill，再继续启用班主任.Skill。
 
-## Example requests
+## 使用
 
-- “Help me initialize a class workspace for Senior 1 Class 3.”
-- “Import this student roster and historical scores.”
-- “Show me Zhang San’s scores and daily performance in time order.”
-- “Show me which students need attention after this monthly exam.”
-- “Generate a new seat plan based on scores, gender, and height.”
-- “Generate parent meeting slides from recent scores and daily records.”
+触发 Skill 后，默认按以下顺序进入：
+
+1. 环境检查
+2. 后端选型
+3. 工作台初始化
+4. 正式运行时任务
+
+默认首选接入：
+
+- 飞书多维表格
+
+后续计划支持：
+
+- Notion
+- Obsidian
+
+典型请求：
+
+- “帮我初始化一个高一 3 班的班主任工作台”
+- “把这份学生名单和历史成绩一次性导入进去”
+- “记一条学生表现：张三今天课后主动来问题”
+- “按时间轴整理一下张三这学期的成绩和表现”
+- “看一下这次月考后全班哪些学生需要重点跟进”
+- “按成绩、性别和身高重新排一个座位表”
+- “根据最近一次考试和这段时间的日常表现生成家长会 PPT”
+
+## 仓库结构
+
+```text
+headteacher-skill/
+├── SKILL.md
+├── prompts/
+├── references/
+├── tools/
+├── docs/
+└── paper/
+```
+
+其中：
+
+- `SKILL.md` 负责触发条件、主流程和运行时路由
+- `prompts/` 负责 setup、迁移、runtime 和文件生成的操作指引
+- `references/` 负责标准模型与规则说明
+- `tools/` 负责初始化、迁移检查和产物登记
+
+## 注意
+
+- 这个 Skill 不再以“角色扮演班主任”为目标
+- 不会默认覆盖已有的飞书多维表格
+- 如果用户提供已有工作台，会先做检查与迁移建议
+- 敏感字段默认按“少展示、先确认”处理
