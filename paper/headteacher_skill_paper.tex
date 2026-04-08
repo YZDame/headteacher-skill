@@ -1,0 +1,285 @@
+\documentclass[11pt,a4paper,fontset=none]{ctexart}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{hyperref}
+\usepackage{xurl}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+
+\setCJKmainfont[
+  ItalicFont={Songti SC},
+  BoldItalicFont={Songti SC}
+]{Songti SC}
+\setCJKsansfont{Hiragino Sans GB}
+\setCJKmonofont{Heiti SC}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+  pdftitle={班主任.Skill：面向班级治理的工作台 Skill},
+  pdfauthor={YZDame}
+}
+
+\title{\textbf{班主任.Skill：面向班级治理的工作台 Skill}}
+\author{YZDame\thanks{\href{https://github.com/YZDame}{https://github.com/YZDame}}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+	随着 Skill 这种新工具逐渐出现，越来越多的工作开始从“临时问一句”转向“围绕同一套数据持续做事”。但在教师尤其是班主任的日常工作里，仍然缺少一套真正好用的方案：既能持续记录学生数据，又能根据这些数据直接生成日常所需的文件。本文提出 \textbf{班主任.Skill}(\texttt{\url{https://github.com/YZDame/headteacher-skill}})，并将其概括为两种核心能力：\textbf{一是数据的记录、读写以及动态读写}，\textbf{二是按需生成特定的 Office 文件}。前者负责把学生主档、成绩、日常表现、家校沟通、座位和值日等内容持续放进同一套工作台；后者负责根据这些记录生成排座表、值日表、家长会 PPT 等专用文件。第一版默认首选飞书多维表格，Notion 和 Obsidian 暂作为后续开发方向保留。本文重点介绍其系统思路、典型使用方式与第一版的落地边界。
+\end{abstract}
+
+\section{引言}
+
+在不少中文语境里，Skill 容易被误解成“给 AI 加一段人设提示词”。这种理解对班主任场景其实帮助不大。因为班主任日常工作最重要的，并不是“像老师一样说话”，而是持续记录学生信息、查看学生变化，并在需要的时候快速生成各类工作文件。
+
+如果仍以角色扮演为中心，那么所谓“班主任 Skill”最多只能成为一个聊天产品；它无法真正承担班主任工作里最有价值的部分：数据记录、动态更新、学生跟踪以及文件生成。基于这一判断，\textbf{班主任.Skill} 的目标不是复刻班主任的人格，而是为班主任提供一个真正能做事的工作台。
+
+本文延续原有 \href{https://github.com/titanwings/colleague-skill}{\texttt{Colleague.Skill}} 的思路，但把关注点从“复刻某个人”转向“帮助教师持续管理一整个班”。也就是说，这套 Skill 关心的不是某位老师的说话风格，而是怎样把学生数据放进工作台，并让这些数据继续服务于后续的读取、整理和文件生成。
+
+\section{系统设计}
+
+\subsection{双子系统架构}
+
+与 \href{https://github.com/titanwings/colleague-skill}{\texttt{Colleague.Skill}} 在原论文中采用的双部分结构类似，\textbf{班主任.Skill} 也不是把所有能力混成一团，而是将核心能力拆成两个部分：
+
+\begin{itemize}[leftmargin=2em]
+	\item \textbf{Part A — 数据记录与读取子系统}：负责在数据库或多维表格中持续维护学生对象与围绕学生发生的事件。
+	\item \textbf{Part B — 自动化文件生成子系统}：负责根据结构化数据生成排座表、值日表、家长会 PPT 等 Office 文件。
+\end{itemize}
+
+其中，初始化流程和不同平台的连接方式并不是系统的业务核心，而是这两个子系统的\textbf{支撑层}。它们的作用是帮助用户先把工作台搭起来，再把自然语言请求送到正确的执行链路上。
+
+运行时，系统遵循如下流程：\textbf{接收任务 $\rightarrow$ 判断是数据任务还是文件任务 $\rightarrow$ 进入对应子系统 $\rightarrow$ 读写工作台或生成对应文件}。
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[
+			node distance=8mm and 11mm,
+			box/.style={rounded corners=3pt, draw, thick, align=center, minimum height=9mm, text width=2.9cm, font=\small},
+			corea/.style={box, fill=green!18, draw=green!50!black},
+			coreb/.style={box, fill=orange!18, draw=orange!60!black},
+			support/.style={box, fill=blue!14, draw=blue!55!black},
+			output/.style={box, fill=purple!14, draw=purple!55!black},
+			arrow/.style={-{Latex[length=2.6mm]}, thick}
+		]
+		\node[support] (task) {教师输入需求};
+		\node[support, right=of task] (router) {系统判断任务类型};
+		\node[corea, below left=of router, xshift=-3mm] (data) {Part A\\数据记录与读取};
+		\node[coreb, below right=of router, xshift=3mm] (artifact) {Part B\\自动化文件生成};
+		\node[support, below=of router, yshift=-18mm] (adapter) {初始化流程 + 平台连接};
+		\node[output, below=of data] (db) {数据库 / 多维表格\\对象层 + 事件层};
+		\node[output, below=of artifact] (fileout) {Word / Excel / PPT\\可直接使用的产物};
+		\draw[arrow] (task) -- (router);
+		\draw[arrow] (router) -- (data);
+		\draw[arrow] (router) -- (artifact);
+		\draw[arrow] (data) -- (db);
+		\draw[arrow] (artifact) -- (fileout);
+		\draw[arrow] (adapter) -- (data);
+		\draw[arrow] (adapter) -- (artifact);
+	\end{tikzpicture}
+	\caption{班主任.Skill 的双子系统架构：一部分负责持续记录和读取数据，另一部分负责生成日常文件。}
+\end{figure}
+
+\subsection{Part A：数据记录与读取子系统}
+
+这部分能力直接对应班主任的日常工作底座。其核心思想不是“先做一个大表”，而是先把\textbf{对象}和\textbf{事件}分开：
+
+\begin{itemize}[leftmargin=2em]
+	\item 学生主档是稳定对象层；
+	\item 成绩、课堂表现、作业情况、纪律、值日、家校沟通等，是围绕学生不断累积的事件层；
+	\item 座位、值日、班委等则属于带有生效时间的安排层。
+\end{itemize}
+
+这一抽象直接对应作者此前在 OpenClaw + Notion 实践中的经验：Notion 或飞书多维表格负责承载数据，教师通过自然语言提出需求，再由智能工具去帮助完成读写。也就是说，用户不再需要每次都亲自进入表格界面一格一格修改，而是先说出需求，再由系统去执行。
+
+\paragraph{写入模式}
+
+数据写入在系统中被明确拆成两类：
+
+\begin{enumerate}[leftmargin=2em]
+	\item \textbf{一次性导入}：用于开学或系统切换时，将名单、历史成绩、原有表格、多维表格或笔记资料一次性导入新工作台。
+	\item \textbf{动态添加}：用于日常运行时不断补充新的考试成绩、课堂表现、作业情况、家校沟通、纪律记录与安排更新。
+\end{enumerate}
+
+\paragraph{读取模式}
+
+数据读取也被明确拆成两类：
+
+\begin{enumerate}[leftmargin=2em]
+	\item \textbf{纵向读取}：沿时间轴读取某一个学生的情况，例如连续多次考试表现、近几周课堂状态、近期家校沟通记录。
+	\item \textbf{横向读取}：在某一个时间截面下读取部分学生或全班学生的情况，例如本周值日完成情况、一次考试后的全班成绩分布、当前需要重点关注的学生名单。
+\end{enumerate}
+
+这两类读取方式共同决定了数据库设计不能只围绕“按列存什么字段”来思考，而必须围绕“对象是否稳定、事件是否可追溯、时间维度能否切片”来建模。
+
+\begin{table}[h]
+	\centering
+	\caption{数据记录与读取子系统的四种基本模式。}
+	\begin{tabular}{p{2.5cm} p{3cm} p{7.1cm}}
+		\toprule
+		能力类别 & 子模式 & 典型任务 \\
+		\midrule
+		写入 & 一次性导入 & 导入学生名单、历史成绩、旧数据库或表格材料 \\
+		写入 & 动态添加 & 补录考试、课堂表现、作业、家校沟通、纪律事件 \\
+		读取 & 纵向读取 & 按时间轴查看某个学生的成绩和表现变化 \\
+		读取 & 横向读取 & 在某个时间截面下查看部分学生或全班的情况 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\subsection{Part B：自动化文件生成子系统}
+
+如果说 Part A 解决的是“如何把班级运行状态放进工作台”，那么 Part B 解决的就是“如何让这些记录变成可直接使用的工作文件”。
+
+这一子系统在第一版中至少覆盖两类任务：
+
+\begin{itemize}[leftmargin=2em]
+	\item \textbf{安排类文件}：如排座表、值日表、班委表。它们不是静态模板复制，而是根据数据库中学生属性与约束自动排列生成。
+	\item \textbf{展示类文件}：如家长会 PPT。它们不是从旧 PPT 做替换，而是根据成绩记录与日常表现记录自动组织内容。
+\end{itemize}
+
+\paragraph{安排类文件}
+
+排座表或值日表并不应被理解为“导出当前表格”的简单动作，而应当被看作\textbf{一次带约束的生成问题}。系统需要先读取学生主档和相关事件，再根据用户指定的属性完成排列，例如：
+
+\begin{itemize}[leftmargin=2em]
+	\item 成绩
+	\item 性别
+	\item 身高
+	\item 宿舍或分组
+	\item 行为约束或纪律观察
+\end{itemize}
+
+因此，这一子系统的核心不是保存现成模板，而是保存\textbf{排列规则、字段映射与生成逻辑}。
+
+\paragraph{展示类文件}
+
+家长会 PPT 的生成则更明显地依赖数据库记录。其输入至少来自两个维度：
+
+\begin{itemize}[leftmargin=2em]
+	\item 学生成绩与班级整体成绩记录；
+	\item 学生日常表现、作业、纪律、课堂状态等过程性记录。
+\end{itemize}
+
+基于这两类结构化信息，系统再按照预先整理好的大纲组织页面，例如班级概况、考试与成绩、日常表现、班级问题、给家长的建议等。换句话说，PPT 的“模板”在这个项目里主要以\textbf{文本化内容框架}存在，而不是以带真实数据的历史 \texttt{.pptx} 文件存在。
+
+\subsection{支撑层：初始化与平台选择}
+
+虽然上文将初始化和平台选择放在支撑层，但它们仍然决定了这套 Skill 是否可落地。这里的思路并不是从零开始造一个新软件，而是尽量复用现成的成熟工具，再让智能工具帮助教师用自然语言去使用它们。
+
+第一版中，各平台的支持情况如下：
+
+\begin{table}[h]
+	\centering
+	\caption{第一版各平台支持情况。}
+	\begin{tabular}{p{3cm} p{3cm} p{7cm}}
+		\toprule
+		平台 & 支持等级 & 第一版定位 \\
+		\midrule
+		飞书多维表格 & 完整实现 & 第一版默认方案，可建立班主任工作台并承接日常数据读写 \\
+		Notion & 后续开发 & 计划后续接入，目前暂不作为完整方案提供 \\
+		Obsidian & 后续开发 & 计划后续接入，目前暂不作为完整方案提供 \\
+		本地方案 & 轻量保留 & 仅输出本地结构说明与生成规则 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+其中，先完成初始化的意义在于：用户首次安装 Skill 后，不是立刻要求系统生成文件，而是先把工作台搭好。这样一来，后续所有操作都能落在同一套班级数据之上，而不是依赖临时猜测。
+
+\section{使用方式}
+
+\subsection{首次搭建工作台}
+
+首次使用时，班主任.Skill 先完成一轮初始化：
+
+\begin{enumerate}[leftmargin=2em]
+	\item 先确认准备把工作台建在哪里；
+	\item 默认推荐飞书多维表格；
+	\item 再建立学生、成绩、表现、沟通、安排等基础结构；
+	\item 完成之后，再进入日常使用。
+\end{enumerate}
+
+这一过程和作者此前在 OpenClaw + Notion 中的实践是一致的：先把数据库和工具的连接跑通，再逐步把日常工作迁移进去。
+
+\subsection{一次性导入与动态添加}
+
+系统建成后，用户通常会先做一次性导入。例如：
+
+\begin{quote}
+“把这份学生名单、历史成绩和原来的记录导入到新的班主任工作台里。”
+\end{quote}
+
+在导入完成后，再进入持续的动态添加模式。例如：
+
+\begin{quote}
+“把这次小测成绩录进去。”\\
+“记一条学生表现：张三今天课后主动来问题，状态不错。”\\
+“补一条家校沟通记录：李四家长今天来电，反映最近作业拖延。”
+\end{quote}
+
+\subsection{纵向读取与横向读取}
+
+系统在读取时不只回答“能不能查到”，而是明确支持两种查询视角。
+
+\paragraph{纵向读取}
+
+\begin{quote}
+“把张三这学期的考试、课堂表现和家校沟通按时间顺序整理给我。” 
+\end{quote}
+
+这种请求要求系统围绕一个学生，沿着时间线整合多个来源的数据，形成个体画像与追踪记录。
+
+\paragraph{横向读取}
+
+\begin{quote}
+“看一下这次月考后，全班哪些学生需要重点跟进。”\\
+“把本周值日完成情况按小组拉出来。” 
+\end{quote}
+
+这种请求要求系统在某个时间截面下，对多个学生进行切片式读取、筛选和比较。
+
+\subsection{自动化文件生成}
+
+在结构化数据已经存在的前提下，用户可以进一步要求系统生成文件。例如：
+
+\begin{quote}
+“按成绩、性别和身高重新排一个座位表。”\\
+“根据最近一次考试和这段时间的日常表现，生成一份家长会 PPT。”
+\end{quote}
+
+前一种任务需要从学生主档和当前记录中提取相关属性，并执行带约束的排列；后一种任务则需要把成绩记录与日常表现整合进同一叙述结构中。这正是班主任.Skill 与单纯“聊天型班主任 Prompt”最根本的区别：它并不是只会说话，而是能够基于数据完成操作与产物生成。
+
+\section{局限与未来工作}
+
+第一版仍有若干明确边界：
+
+\begin{itemize}[leftmargin=2em]
+	\item 目前只有飞书多维表格是完整方案，Notion 与 Obsidian 仍在后续开发计划中；
+	\item 系统尚未引入复杂权限模型、高级仪表盘配置与心理健康自动预警；
+	\item 数据记录与读取子系统虽然已经明确区分了导入、追加、纵向读取与横向读取，但更复杂的分析视图与自动预警仍有待补充；
+	\item 文件生成子系统目前更偏向规则驱动与结构化渲染，尚未加入成熟的视觉模板管理层。
+\end{itemize}
+
+未来工作包括：
+
+\begin{enumerate}[leftmargin=2em]
+	\item 完善 Notion 与 Obsidian 的最小可用初始化；
+	\item 引入更细粒度的权限与角色控制；
+	\item 进一步增强班级看板、风险提示与多阶段产物流水线；
+	\item 在不保留真实 Office 文件的前提下，建立更丰富的版式规范层。
+\end{enumerate}
+
+\section{结论}
+
+班主任.Skill 的核心创新不在于“让 AI 像班主任说话”，而在于把班主任工作重新组织成两部分：一部分负责持续记录和读取学生数据，另一部分负责根据这些数据生成真正能拿来使用的文件。对教师来说，这样的 Skill 才有实际意义。第一版先以飞书多维表格作为默认方案，后续再逐步扩展到 Notion 和 Obsidian。
+
+\end{document}

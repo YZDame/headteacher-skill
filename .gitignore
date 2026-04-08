@@ -1,6 +1,5 @@
-# Generated colleague skills (user data, not committed)
-colleagues/
-!colleagues/example_zhangsan/
+# Local workspace state for the headteacher skill
+.headteacher-skill/
 
 # Python
 __pycache__/
@@ -10,17 +9,10 @@ __pycache__/
 venv/
 *.egg-info/
 
-# Config with credentials
-~/.colleague-skill/
-
-# Playwright browser data
-playwright-data/
-
 # Temp files
-/tmp/feishu_*.txt
-/tmp/email_*.txt
-/tmp/dingtalk_*.txt
 knowledge/
+tmp/
+班主任材料/
 
 # OS
 .DS_Store
