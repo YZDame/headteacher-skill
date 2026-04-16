@@ -1,8 +1,8 @@
 ---
 name: headteacher-workbench
-description: "Bootstrap and operate an AI-native headteacher workspace. Guide users through backend selection, Feishu Base setup, schema installation, data operations, and artifact generation. Use for class management setup, Feishu CLI onboarding, student records, grades, conduct logs, parent communication, schedules, and Word/Excel/PPT outputs. | 搭建并运行班主任 AI Native 工作台：引导用户选择后端、接入飞书多维表格、初始化班级数据库、持续处理学生信息、成绩、德育、家校沟通与文件生成。"
+description: "Bootstrap and operate an AI-native headteacher workspace. Guide users through backend selection, environment-aware Feishu Base access routing, schema installation, data operations, and artifact generation. Use for class management setup, OpenClaw Feishu plugin onboarding, Feishu CLI onboarding, student records, grades, conduct logs, parent communication, schedules, and Word/Excel/PPT outputs. | 搭建并运行班主任 AI Native 工作台：引导用户选择后端、按运行环境路由飞书多维表格接入方式、初始化班级数据库、持续处理学生信息、成绩、德育、家校沟通与文件生成。"
 argument-hint: "[task-or-class-name]"
-version: "2.0.0"
+version: "2.1.0"
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash
 ---
@@ -17,6 +17,7 @@ Trigger this skill when the user wants to do any of the following:
 
 - Set up a headteacher workspace for the first time
 - Install or verify `lark-cli`
+- Install or verify the official OpenClaw Feishu plugin
 - Connect Feishu Base, Notion, or Obsidian
 - Bootstrap a class-management schema
 - Inspect an existing Feishu Base and decide whether it is reusable
@@ -67,6 +68,8 @@ python3 tools/setup_doctor.py --format markdown
 
 Use the result to decide:
 
+- which agent runtime is currently hosting the skill
+- whether Feishu should be accessed through the OpenClaw official plugin or through `lark-cli`
 - whether `lark-cli` is installed
 - whether Feishu is configured
 - whether office artifact generation dependencies are present
@@ -101,7 +104,16 @@ If backend is `feishu_base`, also read:
 - [prompts/feishu-bootstrap.md](prompts/feishu-bootstrap.md)
 - [references/feishu-model.md](references/feishu-model.md)
 
-Then run:
+Then choose the Feishu access path:
+
+1. If `tools/setup_doctor.py` reports `agent_runtime.runtime = openclaw`:
+   - check whether the official OpenClaw plugin `openclaw-lark` is installed
+   - if missing, guide installation first
+   - then use the plugin's Feishu Base tools / API capabilities to create the base, tables, fields, views, and records
+   - do **not** require `lark-cli` in this branch
+2. If runtime is `codex`, `claude_code`, or another local agent:
+   - use the existing local toolchain
+   - run:
 
 ```bash
 python3 tools/feishu_bootstrap.py bootstrap --workspace-name "<class-name>"
@@ -170,7 +182,12 @@ The model is intentionally object-event based:
 
 The only fully supported backend in v1.
 
-Use:
+Always route access by runtime first:
+
+- `openclaw` -> official OpenClaw Lark/Feishu plugin (`openclaw-lark`) + Feishu Base API tools
+- `codex`, `claude_code`, or local agent -> `lark-cli` + local Python tools in this repository
+
+Use local tools when the runtime is **not** OpenClaw:
 
 - `python3 tools/setup_doctor.py`
 - `python3 tools/feishu_bootstrap.py`

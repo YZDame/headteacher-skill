@@ -16,7 +16,9 @@ Use this prompt when the user has not yet chosen a backend or asks about backend
 - the user wants structured records
 - the user wants dashboards or views
 - the user wants the most complete v1 support
-- the user is comfortable installing `lark-cli`
+- the user can use either:
+  - the official OpenClaw Lark/Feishu plugin in OpenClaw
+  - or `lark-cli` in Codex / Claude Code / local agent environments
 
 ### Allow `notion` when:
 

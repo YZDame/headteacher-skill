@@ -36,6 +36,11 @@ Typical file outputs include:
 The default v1 backend is **Feishu Base**.  
 `Notion` and `Obsidian` are reserved for later development.
 
+Feishu access is routed by runtime:
+
+- In OpenClaw, prefer the official OpenClaw Lark/Feishu plugin `openclaw-lark`
+- In Codex, Claude Code, or other local agents, keep using the existing `lark-cli` path
+
 ## v1 scope
 
 ### Available now
@@ -65,6 +70,8 @@ Then tell the agent:
 ```bash
 Please enable Headteacher.Skill and guide me through initializing a Feishu Base workspace first.
 ```
+
+If the skill is running inside OpenClaw, Feishu Base setup should prefer the official OpenClaw Feishu plugin path instead of requiring `lark-cli` by default.
 
 ## Office skills
 

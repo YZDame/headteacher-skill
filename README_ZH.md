@@ -27,6 +27,11 @@
 第一版默认首选接入 **飞书多维表格**。  
 `Notion` 和 `Obsidian` 暂时作为后续开发方向保留。
 
+飞书接入方式会按运行环境自动分流：
+
+- 如果 Skill 运行在 OpenClaw 中，优先检测并使用 OpenClaw 官方飞书插件 `openclaw-lark`
+- 如果 Skill 运行在 Codex、Claude Code 或其他本地 Agent 中，沿用原有 `lark-cli` 方案
+
 ## 第一版范围
 
 ### 现在可用
@@ -72,6 +77,8 @@
 请帮我启用班主任.Skill，并先带我完成飞书多维表格的初始化。
 ```
 
+如果你是在 OpenClaw 中使用本 Skill，飞书多维表格初始化应优先通过 OpenClaw 官方飞书插件完成，而不是默认要求你安装 `lark-cli`。
+
 如果你后续要使用“按需生成文件”这项能力，还需要本地具备 Office 相关的 Skill 套装，用来处理：
 
 - `.docx`
@@ -93,6 +100,11 @@
 默认首选接入：
 
 - 飞书多维表格
+
+其中飞书多维表格的接入会按环境自动切换：
+
+- OpenClaw -> 官方飞书插件 `openclaw-lark` + 飞书 API
+- Codex / Claude Code / 本地 Agent -> `lark-cli`
 
 后续计划支持：
 
