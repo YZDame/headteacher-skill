@@ -39,12 +39,14 @@
 \maketitle
 
 \begin{abstract}
-班主任每天要处理很多小事：接手一个新班、整理名单、录入考试成绩、记下学生表现、跟进家校沟通、排座位和值日，还要准备家长会材料。这些事情通常分散在 Excel、聊天记录、纸笔和个人笔记里，真正费时间的往往是重复整理和反复查找。本文从教师的实际工作习惯出发，介绍开源项目\textbf{班主任.skill}。这里的 Skill 可以理解为助手的一项专长：老师用熟悉的话提出任务，助手先问清必要信息，再给出可以检查的草稿，确认后完成记录、查询、安排或文件制作。项目把这些专长打包成一套可安装的技能包，班级资料可以连接到飞书多维表格、Notion 或 Obsidian。本文重点说明适用的教师、使用体验和现实边界，不把工程结构等同于已经发生的课堂效果。
+班主任每天要处理很多小事，也经常要用 Word、Excel、PPT 做记录和材料：接手一个新班、整理名单、录入考试成绩、记下学生表现、跟进家校沟通、排座位和值日，还要准备家长会材料。真正费时间的往往不是不会使用办公软件，而是数据和文件散落在电脑文件夹、聊天记录、云盘、纸笔和个人笔记里，查询、复制、比对和再加工都要人工完成。本文从教师的实际工作习惯出发，介绍开源项目\textbf{班主任.skill}。这里的 Skill 可以理解为助手的一项专长：老师用熟悉的话提出任务，助手先问清必要信息，再给出可以检查的草稿，确认后完成记录、查询、安排或文件制作。项目把班级管理中的数据和各种格式文件按统一规则整理到教师选定的主要位置，再接入 AI Agent，让教师可以用自然语言对资料进行读取、写入和进一步加工。本文重点说明适用的教师、使用体验和现实边界，不把工程结构等同于已经发生的课堂效果。
 \end{abstract}
 
 \section{先从班主任的日常说起}
 
-班主任并不缺少记录工具。很多老师已经有自己的表格、群聊、备忘录和纸质材料，问题在于这些材料各自保存，彼此很难接上。新接一个班时，要重新核对名单和联系方式；考试后，要把成绩抄到几个表里；家长来电后，想回看上次沟通内容，往往要翻聊天记录；需要排座位、排值日或做家长会 PPT 时，又要重新整理一遍资料。
+班主任并不缺少记录工具，也不缺少使用办公软件的经验。很多老师熟悉 Word、Excel、PPT，会自己制作成绩表、家长会演示文稿、通知和谈话记录。实际麻烦在于，这些文件和数据各自存放，可能分布在电脑文件夹、聊天窗口、云盘、纸质夹子和不同版本的文档中，彼此很难接上。新接一个班时，要重新核对名单和联系方式；考试后，要把成绩抄到几个表里；家长来电后，想回看上次沟通内容，往往要翻聊天记录；需要排座位、排值日或做家长会 PPT 时，又要重新调取和整理一遍资料。
+
+班主任.skill 为班级管理涉及的各类数据和文件建立统一规范：学生资料、成绩、成长记录、班务安排，以及 Word、Excel、PPT 等文件都按同一套约定保存、登记来源并相互关联。资料集中到教师选定的主要位置后，再接入 AI Agent。教师仍然可以使用熟悉的办公文件，也可以用自然语言让 Agent 读取、写入、查询、整理或生成材料；涉及写入、敏感信息或不确定的判断时，先看草稿，再由教师确认。
 
 这些工作有一个共同点：老师知道自己要做什么，却不想先学习一套新的软件术语。老师更可能说“把这次小测录进去”“帮我看看最近谁需要跟进”“按身高和小组重排座位”，而不是先研究软件指令和表格栏目。班主任.skill 的设计从这种说法出发。
 
@@ -183,11 +185,42 @@
 
 \section{怎样开始，不必一次搬完}
 
+班主任.skill 可以从一个小任务开始，不需要先把多年积累的资料全部搬走。可以按下面的顺序操作：
+
 \begin{enumerate}
   \item \textbf{先选一个起点。}可以从现有的飞书多维表格、Notion 页面或 Obsidian 笔记库开始；没有现成资料时，也可以先用一小份脱敏名单试做。
-  \item \textbf{让正在使用的 AI 助手安装技能包。}Codex、Claude Code、DSH、豆包工作台等环境可以从 GitHub 读取完整 Skill 文件夹；安装提示词已经放在仓库中文 README 的“快速安装”部分。
-  \item \textbf{先做一个具体任务。}例如录入一次小测，或生成一份值日草稿。先看助手能否准确识别学生、日期和受众，再决定是否扩大范围。
-  \item \textbf{把人工确认保留下来。}连接在线资料库需要账号和权限，第一次写入前要检查栏目对应关系。暂时没有资料连接功能时，可以先在本地做预览和文件草稿。
+  \item \textbf{把安装提示词发给正在使用的 AI 助手。}Codex、Claude Code、DSH、豆包工作台等环境都可以从 GitHub 读取这套技能文件。下面这段文字可以直接复制。
+\end{enumerate}
+
+\paragraph{可直接复制给 Agent 的安装提示词}
+
+\begin{quote}
+\small
+\raggedright
+请安装 \url{https://github.com/YZDame/headteacher-skill} 中的班级管理 Skills。先阅读 \texttt{README.md}、\texttt{INSTALL.md} 和 \texttt{references/data-contract.md}，列出 \texttt{skills/} 下每个 Skill 的用途，让我选择安装全部 Skills 还是其中几个。若当前环境支持插件，请执行 \texttt{npx plugins add YZDame/headteacher-skill}；若支持 Skills CLI，请执行 \texttt{npx skills add YZDame/headteacher-skill}；若只能导入本地目录，请导入所选 Skill 的完整文件夹，不要只复制 \texttt{SKILL.md}。安装后检查各个 \texttt{SKILL.md} 是否能被发现，说明当前 Agent、后端连接器、凭据和本地工具还缺什么；不要假设已经连上飞书、Notion 或 Obsidian，也不要把任何凭据写入仓库。
+\end{quote}
+
+\begin{enumerate}[resume]
+  \item \textbf{根据 Agent 的能力选择安装方式。}若支持 Plugins CLI，可以安装完整插件：
+\end{enumerate}
+
+\begin{quote}
+\texttt{npx plugins add YZDame/headteacher-skill}
+\end{quote}
+
+若支持 Skills CLI，可以先查看清单，再安装完整包或单个 Skill：
+
+\begin{quote}
+\texttt{npx skills add YZDame/headteacher-skill --list}\\
+\texttt{npx skills add YZDame/headteacher-skill}\\
+\texttt{npx skills add YZDame/headteacher-skill --skill class-data}
+\end{quote}
+
+如果环境只能手动导入，就下载仓库，从 \texttt{skills/} 中选择完整的 Skill 文件夹。不要只复制 \texttt{SKILL.md}，因为文件夹里可能还包含脚本和参考资料。
+
+\begin{enumerate}[resume]
+  \item \textbf{让 Agent 报告安装结果。}安装完成后，让它列出已安装的 Skill、未满足的依赖、选定的数据源位置，以及任何需要人工确认的写入操作。没有账号或资料连接功能时，应先做本地预览和文件草稿。
+  \item \textbf{先做一个具体任务。}例如录入一次小测，或生成一份值日草稿。先看 Agent 能否准确识别学生、日期和受众，再决定是否扩大范围。第一次写入前，检查栏目对应关系和草稿内容。
 \end{enumerate}
 
 这样的开始方式符合教师的工作节奏：先解决眼前的一件事，再逐步把重复工作交给助手。它也给老师留下了回到原有表格和笔记的退路。
@@ -217,5 +250,12 @@
 班主任.skill 面向的是那些熟悉学生和班务、却不想再学习一套技术系统的教师。它把“记一笔、查一遍、排一张表、做一份材料”变成可以用自然语言开始的工作，并在真正修改资料前给老师一个检查机会。对教师而言，最重要的结果不是听起来多复杂的系统，而是资料能否少抄一次、需要时能否找得到、生成的文件能否直接继续修改。
 
 项目按工作分开的几项专长和统一记录方式为这种使用体验提供了基础，但它仍然需要资料连接功能、学校授权和教师复核。把能做的事情说清楚，把还不能保证的事情留下来，才能让它成为一个可以逐步试用的班级工作助手。
+
+\section*{参考资料}
+
+\begin{enumerate}[label={[\arabic*]}]
+  \item YZDame. \textit{班主任.skill：班级管理 Skills 插件包}. GitHub 项目仓库。\\
+  \url{https://github.com/YZDame/headteacher-skill}（访问日期：2026 年 8 月 26 日）。
+\end{enumerate}
 
 \end{document}
