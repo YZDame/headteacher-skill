@@ -4,10 +4,10 @@
 \usepackage{xurl}
 \usepackage{booktabs}
 \usepackage{array}
-\usepackage{longtable}
 \usepackage{enumitem}
+\usepackage{float}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
 
 \setlength{\parindent}{2em}
 \setlength{\parskip}{0.25em}
@@ -25,11 +25,12 @@
   colorlinks=true,
   linkcolor=black,
   urlcolor=blue,
-  pdftitle={班主任.Skill：面向班级治理的多 Skill 工作台},
+  pdftitle={班主任.skill：面向班主任日常工作的数字助手},
   pdfauthor={YZDame}
 }
+\pagestyle{plain}
 
-\title{\textbf{班主任.Skill：面向班级治理的多 Skill 工作台}}
+\title{\textbf{班主任.skill：面向班主任日常工作的数字助手}}
 \author{YZDame\thanks{\href{https://github.com/YZDame}{https://github.com/YZDame}}}
 \date{\today}
 
@@ -38,213 +39,183 @@
 \maketitle
 
 \begin{abstract}
-班主任工作同时包含学生主档、成绩和表现记录、家校沟通、班务安排以及面向家长和学校的文件产物。若只把这些工作写成一段角色提示词，数据难以复用，写入也缺少可检查的边界。本文介绍开源项目\textbf{班主任.Skill}（\texttt{headteacher-skill}）的 v3 设计：将工作拆成 5 个业务 Skills 和 3 个后端适配 Skills，以统一数据协议连接飞书多维表格、Notion 与 Obsidian，并把 Word、Excel、PPT 视为可追溯的下游产物。系统要求在写入、迁移和删除前提供预览并获得确认。当前飞书是首个优先适配器，Notion 与 Obsidian 提供映射和 fixture；真实远程写入仍取决于用户配置的连接器和凭据。本文是工程设计说明，不宣称已经完成课堂效果评估。
+班主任每天要处理很多小事：接手一个新班、整理名单、录入考试成绩、记下学生表现、跟进家校沟通、排座位和值日，还要准备家长会材料。这些事情通常分散在 Excel、聊天记录、纸笔和个人笔记里，真正费时间的往往是重复整理和反复查找。本文从教师的实际工作习惯出发，介绍开源项目\textbf{班主任.skill}。这里的 Skill 可以理解为助手的一项专长：老师用熟悉的话提出任务，助手先问清必要信息，再给出可以检查的草稿，确认后完成记录、查询、安排或文件制作。项目把这些专长打包成一套可安装的技能包，班级资料可以连接到飞书多维表格、Notion 或 Obsidian。本文重点说明适用的教师、使用体验和现实边界，不把工程结构等同于已经发生的课堂效果。
 \end{abstract}
 
-\section{问题范围与设计目标}
+\section{先从班主任的日常说起}
 
-班主任日常工作有三个相互关联的特征。第一，学生主档相对稳定，成绩、课堂表现、纪律和家校沟通却会持续增加。第二，座位、值日和班委属于带有生效时间的安排，不能简单覆盖旧记录。第三，教师最终需要的是可以直接使用的通知、表格和演示文稿，而不是一堆只停留在聊天窗口里的答案。
+班主任并不缺少记录工具。很多老师已经有自己的表格、群聊、备忘录和纸质材料，问题在于这些材料各自保存，彼此很难接上。新接一个班时，要重新核对名单和联系方式；考试后，要把成绩抄到几个表里；家长来电后，想回看上次沟通内容，往往要翻聊天记录；需要排座位、排值日或做家长会 PPT 时，又要重新整理一遍资料。
 
-因此，本项目把目标限定为四件可检查的事情：
+这些工作有一个共同点：老师知道自己要做什么，却不想先学习一套新的软件术语。老师更可能说“把这次小测录进去”“帮我看看最近谁需要跟进”“按身高和小组重排座位”，而不是先研究软件指令和表格栏目。班主任.skill 的设计从这种说法出发。
 
-\begin{enumerate}
-  \item 让 Agent 能发现并调用职责清晰的 Skills，而不是依赖一段不可拆分的长提示词；
-  \item 用后端无关的数据协议保存稳定 ID、时间、来源、可见范围和敏感级别；
-  \item 让飞书多维表格、Notion 和 Obsidian 通过适配器承载同一套概念模型；
-  \item 在生成或写入前给出预览，写入后保留版本、来源和产物登记信息。
-\end{enumerate}
+本文中的教师画像是产品设计依据，不是问卷统计。它们帮助我们决定助手应该怎样提问、何时停下来让老师确认，以及哪些内容不应由助手擅自判断。
 
-仓库提供的是可安装的工程组件和校验脚本，不包含学生个人数据、账号 Token 或远程服务的默认连接。项目文档中的“支持”指已有协议、映射或 fixture；是否能够实时读写，必须以当前 Agent 的连接器、权限和本地工具检查结果为准。
+\section{哪些教师会使用它}
 
-\section{总体架构}
+\begin{table}[H]
+  \centering
+  \small
+  \caption{目标教师的常见工作情境。}
+  \begin{tabular}{p{3.2cm} p{5.1cm} p{6.2cm}}
+    \toprule
+    教师情境 & 他们手里的材料和经验 & 他们希望助手解决的问题 \\
+    \midrule
+    刚接手新班的班主任 & 有一份名单，可能还有前任留下的表格和零散说明，需要尽快熟悉学生 & 先把资料归拢起来，知道哪些信息缺失，不必一开始就重新设计整套表格 \\
+    已经带班一段时间的班主任 & 资料越来越多，成绩、谈话、家校沟通和班务安排分散在不同地方 & 说一句话就能补记或查找，沿时间线回看一个学生，也能按某个日期看全班 \\
+    副班主任或年级组教师 & 只负责部分学生或某类事务，不一定拥有全部敏感信息 & 只看与当前工作有关的内容，交接时能说明来源和时间，不把所有资料都摊开 \\
+    不想更换原有工具的教师 & 熟悉 Excel 或某个笔记工具，对迁移和自动写入保持谨慎 & 先用小范围资料试做，看到草稿再决定是否写入，保留原有工具作为可回退的参照 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-\subsection{从单一 Skill 到插件包}
+\subsection{他们怎样理解“技能”}
 
-v3 使用一个插件清单承载多个可独立发现的 \texttt{SKILL.md}。业务 Skills 处理班级任务，适配 Skills 处理后端差异，\texttt{headteacher-workbench} 负责初始化和路由。这样做可以让用户只安装需要的功能，也可以在 Codex 等支持插件的 Agent 中一次安装完整包；Claude Code、DSH、豆包工作台等环境则可以按各自约定导入同一组完整 Skill 文件夹。
+对教师来说，Skill 不应是一门需要专门学习的技术。更合适的理解是“这个助手会做哪一类事情”。教师可以只记住几个工作词：名单和成绩、学生成长、班务安排、文件制作；系统在幕后决定由哪一个技能接手。
 
-\subsection{请求、协议与后端}
+目标体验有五个要求：
 
-一条请求先由 Agent 识别任务，再进入业务 Skill。业务 Skill 只依赖统一数据协议，不直接假设某个后端的字段名称；适配器负责把协议映射到具体服务。文件生成位于数据链路下游，产物必须记录其来源。图~\ref{fig:architecture} 用普通用户可以理解的方式展示这条链路。
+\begin{itemize}
+  \item 使用教师熟悉的说法，不要求先记住字段名或命令名；
+  \item 只追问完成任务所必需的信息，例如是哪一次考试、哪个班、要给谁看；
+  \item 在修改资料前先展示新增、修改和冲突，让老师有机会纠正；
+  \item 允许老师从一个小任务开始，不要求一次性迁移全部历史材料；
+  \item 对学生保持中性、基于事实的描述，不把一次观察变成诊断或固定标签。
+\end{itemize}
 
-\begin{figure}[htbp]
+\section{它能替老师完成什么}
+
+班主任.skill 把常见工作分成几项专长，每项专长都负责一类具体事情。教师不必在对话中自己挑选名称，总入口会根据任务分流。
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{从教师说法到可交付结果。}
+  \begin{tabular}{p{3.0cm} p{5.4cm} p{6.1cm}}
+    \toprule
+    工作专长 & 教师可能会这样说 & 助手应当交付什么 \\
+    \midrule
+    建立班级资料 & “我刚接手高一 3 班，先把名单和已有成绩整理起来。” & 先检查资料和缺项，再给出导入草稿；老师确认后形成可继续使用的班级资料 \\
+    日常记录 & “记一条今天的课堂表现。” & 记录学生、日期、观察到的事实和来源；不替老师增加没有说过的结论 \\
+    查找和跟进 & “把张三这学期的成绩、表现和家校沟通按时间排一下。” & 形成一条易读的学生时间线；“看全班”时则按日期或条件列出需要查看的记录 \\
+    班务安排 & “按身高和分组约束排一个座位表。” & 先列出硬性要求、冲突和未安排学生，再提供可调整的座位或值日草稿 \\
+    文件制作 & “根据最近成绩和表现做一份家长会材料。” & 只取必要资料生成 Word、Excel 或 PPT 草稿，并说明材料来自哪些记录 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+这些专长在仓库中分别由独立的技能负责，飞书、Notion、Obsidian 的连接方式也单独维护。教师看到的仍然是“把资料放在哪里、怎样查和怎样确认”。
+
+\section{一次请求怎样完成}
+
+教师提出任务后，不必先判断该选择哪项专长。助手先把任务翻译成几个容易回答的问题：涉及哪个班或学生、时间范围是什么、要查资料还是要修改资料、结果准备给谁看。信息不足时先停下来问；信息足够时先给草稿。
+
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}[
       node distance=5mm and 4mm,
-      box/.style={rounded corners=2pt, draw=black!65, thick, align=center, minimum height=13mm, text width=2.25cm, font=\small},
-      wide/.style={box, text width=2.75cm},
-      contract/.style={box, text width=2.45cm, fill=yellow!20, draw=orange!65!black},
+      flowstep/.style={rounded corners=2pt, draw=black!65, thick, align=center, minimum height=13mm, text width=2.45cm, font=\small},
       arrow/.style={-{Latex[length=2.5mm]}, thick}
     ]
-    \node[box, fill=blue!10, draw=blue!55!black] (request) {教师\\自然语言请求};
-    \node[box, fill=blue!10, draw=blue!55!black, right=of request] (agent) {Agent\\识别与路由};
-    \node[wide, fill=green!12, draw=green!50!black, right=of agent] (skills) {业务 Skills\\\texttt{class-data} · 成长\\班务 · 产物};
-    \node[contract, right=of skills] (contract) {统一数据协议\\Schema + 安全规则};
-    \node[wide, fill=orange!14, draw=orange!65!black, right=of contract] (outputs) {适配器与输出\\飞书 · Notion\\· Obsidian\\Office 产物};
-    \draw[arrow] (request) -- (agent);
-    \draw[arrow] (agent) -- (skills);
-    \draw[arrow] (skills) -- (contract);
-    \draw[arrow] (contract) -- (outputs);
+    \node[flowstep, fill=blue!10, draw=blue!55!black] (say) {老师说出需求};
+    \node[flowstep, fill=green!12, draw=green!50!black, right=of say] (ask) {助手问清\\必要信息};
+    \node[flowstep, fill=yellow!20, draw=orange!65!black, right=of ask] (draft) {给出查询或\\修改草稿};
+    \node[flowstep, fill=orange!14, draw=orange!65!black, right=of draft] (confirm) {老师检查并\\确认};
+    \node[flowstep, fill=purple!12, draw=purple!55!black, right=of confirm] (done) {得到记录、安排\\或文件};
+    \draw[arrow] (say) -- (ask);
+    \draw[arrow] (ask) -- (draft);
+    \draw[arrow] (draft) -- (confirm);
+    \draw[arrow] (confirm) -- (done);
   \end{tikzpicture}
-  \caption{班主任.Skill 的运行链路：请求先经过路由和业务处理，再通过统一协议连接后端或生成下游产物。}
-  \label{fig:architecture}
+  \caption{教师能看懂的使用流程：先说需求，先看草稿，确认后才改变资料。}
+  \label{fig:teacher-flow}
 \end{figure}
 
-\section{Skill 组成与职责}
+例如，老师说“把这次月考成绩录进去”。助手需要知道考试名称、班级和成绩来源，并检查是否已有同名记录。它应先告诉老师将新增或更新哪些内容；老师发现学生姓名或分数有误时，可以在写入前改正。查询任务也可以停在草稿阶段，不必改变任何资料。
 
-\subsection{业务 Skills}
+图~\ref{fig:teacher-flow} 中的“确认”不是多余的手续。班主任掌握学生情况，助手只负责整理和执行；最终决定权仍在老师手里。
 
-五个业务 Skills 形成从初始化到产物生成的最小工作链路。每个目录都包含可独立发现的 \texttt{SKILL.md}，并在需要时引用仓库根目录的协议和脚本。
+\section{资料怎样被整理，老师为什么能反复使用}
 
-\begin{table}[htbp]
-  \centering
-  \small
-  \caption{业务 Skills 及其职责。}
-  \begin{tabular}{p{3.3cm} p{4.2cm} p{7.0cm}}
-    \toprule
-    Skill & 主要输入 & 主要输出或动作 \\
-    \midrule
-    \shortstack[l]{\texttt{headteacher-}\\\texttt{workbench}} & 后端选择、初始化请求、环境状态 & 检查环境，选择单一事实来源，并把任务路由到其他 Skills \\
-    \texttt{class-data} & 名单、考试、成绩、事件和迁移材料 & 规范化记录，执行导入、追加、查询、更新或 tombstone 预览 \\
-    \texttt{student-growth} & 观察、谈话、干预、家校沟通 & 可追溯的成长事件和纵向时间线，区分事实、解释和下一步 \\
-    \texttt{class-operations} & 学生属性、座位或值日约束、有效日期 & 带冲突说明的安排预览，以及版本化的 assignment 记录 \\
-    \texttt{class-artifacts} & 规范记录、受众、日期范围和模板规则 & Word、Excel、PPT 等下游产物，并登记其来源记录 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\subsection{把“一个大表”拆成三种容易理解的东西}
 
-\subsection{后端适配 Skills}
-
-\texttt{feishu-adapter}、\texttt{notion-adapter} 和 \texttt{obsidian-adapter} 共享同一组概念操作：检查前提条件、认证、初始化 Schema、读取实体、写入变更集、生成视图、登记产物和说明限制。业务 Skill 不应绕过这些入口直接拼接后端字段。
-
-\section{统一数据协议}
-
-\subsection{协议外壳与记录不变量}
-
-协议版本为 1.0。每次请求或变更集都带有下表字段；其中 \texttt{dry\_run} 用于明确只预览不写入，\texttt{request\_id} 用于追踪一次操作。
-
-\begin{table}[htbp]
-  \centering
-  \small
-  \caption{协议外壳的关键字段。}
-  \begin{tabular}{p{3.2cm} p{10.8cm}}
-    \toprule
-    字段 & 含义 \\
-    \midrule
-    \texttt{protocol\_version} & 当前固定为 \texttt{1.0}，用于判断协议兼容性 \\
-    \texttt{operation} & \texttt{import}、\texttt{append}、\texttt{upsert}、\texttt{query}、\texttt{tombstone} 或 \texttt{export} \\
-    \texttt{request\_id} / \texttt{workspace\_id} & 分别标识请求和班级工作台 \\
-    \texttt{actor} / \texttt{emitted\_at} & 记录操作者来源和带时区的发出时间 \\
-    \texttt{dry\_run} / \texttt{records} & 标记是否只预览，并携带规范化后的记录数组 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-每条记录至少包含 \texttt{entity\_type}\allowbreak、\texttt{entity\_id}\allowbreak、\texttt{class\_id}\allowbreak、\texttt{revision}\allowbreak、\texttt{source}\allowbreak、\texttt{visibility}\allowbreak、\texttt{sensitivity} 和 \texttt{payload}。实体类型覆盖 \texttt{class\_profile}\allowbreak、\texttt{student\_master}\allowbreak、\texttt{exam\_batch}\allowbreak、\texttt{score\_detail}\allowbreak、\texttt{growth\_event}\allowbreak、\texttt{parent\_contact}\allowbreak、\texttt{seat\_assignment}\allowbreak、\texttt{duty\_assignment}\allowbreak、\texttt{committee\_assignment} 和 \texttt{artifact\_record}。稳定 ID 只在同一工作台内保证不变；时间使用带明确偏移量的 ISO 8601；无法识别的字段保留在 \texttt{payload} 或报告为警告，不能静默丢弃。
-
-\subsection{写入控制与可追溯性}
-
-重复提交同一 \texttt{entity\_id} 和 \texttt{revision} 应保持幂等。删除通过 tombstone 表示，不能把学生记录直接硬删除。迁移前先检查已有后端，新增字段尽量采用可回滚的加法变更。电话、地址和证件号码默认受到限制；分享给家长或学校的产物只能带任务所需字段。
-
-图~\ref{fig:writeflow} 展示一次写入或迁移请求的最短路径。用户可以在确认节点选择停止，或者保持 \texttt{dry\_run} 状态继续查看预览。
-
-\begin{figure}[htbp]
-  \centering
-  \begin{tikzpicture}[
-      node distance=6mm and 7mm,
-      flow/.style={rounded corners=2pt, draw=black!65, thick, align=center, minimum height=11mm, text width=2.35cm, font=\small},
-      decision/.style={diamond, draw=black!65, thick, aspect=2.1, align=center, inner sep=1pt, text width=1.8cm, font=\small},
-      arrow/.style={-{Latex[length=2.5mm]}, thick}
-    ]
-    \node[flow, fill=blue!10] (input) {提出任务};
-    \node[flow, fill=green!12, right=of input] (normalize) {识别实体\\规范化字段};
-    \node[flow, fill=yellow!20, right=of normalize] (preview) {生成变更\\预览};
-    \node[decision, fill=orange!18, right=of preview] (confirm) {确认写入？};
-    \node[flow, fill=orange!14, right=of confirm] (execute) {调用适配器\\查询或写入};
-    \node[flow, fill=gray!12, below=of confirm] (stop) {补充信息\\或结束 dry-run};
-    \node[flow, fill=purple!12, below=of execute] (record) {返回记录\\登记产物};
-    \draw[arrow] (input) -- (normalize);
-    \draw[arrow] (normalize) -- (preview);
-    \draw[arrow] (preview) -- (confirm);
-    \draw[arrow] (confirm) -- node[above,font=\scriptsize]{是} (execute);
-    \draw[arrow] (confirm) -- node[right,font=\scriptsize]{否} (stop);
-    \draw[arrow] (execute) -- (record);
-  \end{tikzpicture}
-  \caption{写入、迁移和删除都经过预览与确认；查询可以在预览后直接返回，不必改变数据。}
-  \label{fig:writeflow}
-\end{figure}
-
-\section{后端适配与当前状态}
-
-工作台选择一个后端作为事实来源。适配器负责投影和读取，不自动在多个后端之间同步同一条记录。这样可以避免同一学生在多个系统中出现无法判断的冲突，也让迁移成为一项显式、可审计的操作。
-
-\begin{table}[htbp]
-  \centering
-  \small
-  \caption{当前后端能力边界。}
-  \begin{tabular}{p{3.0cm} p{4.0cm} p{7.2cm}}
-    \toprule
-    后端 & 仓库内的实现 & 仍需的运行条件 \\
-    \midrule
-    飞书多维表格 & 首个优先适配器，包含连接路由、Schema 映射和迁移检查 & 用户提供飞书凭据，并配置可用的 API/MCP 或 \texttt{lark-cli}；真实写入须经过预览和确认 \\
-    Notion & 适配器骨架、字段映射和 fixture & 已连接的 Notion API/MCP；仓库不宣称已经达到飞书的实时能力 \\
-    Obsidian & Markdown、YAML frontmatter 和 Bases 的本地投影适配器 & 指定本地 vault，可选 Obsidian CLI；它保持本地优先，不等同于远程数据库 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-这种状态描述把“协议已经定义”“映射已经提供”“连接器已经可用”分开。Agent 在运行时应先执行环境检查，再向用户说明缺少的工具或权限，而不能根据仓库文件推断已经拥有远程访问能力。
-
-\section{典型使用方式}
-
-用户以自然语言提出任务，Agent 先确定实体、时间范围、受众和目标后端，再调用相应的业务 Skill。下表给出不依赖具体班级数据的示例。
-
-\begin{table}[htbp]
-  \centering
-  \small
-  \caption{自然语言任务与执行链路。}
-  \begin{tabular}{p{5.4cm} p{4.0cm} p{4.8cm}}
-    \toprule
-    用户请求示例 & 主要 Skills & 预期动作 \\
-    \midrule
-    “把名单和历史成绩导入工作台。” & \texttt{class-data} + 后端适配器 & 规范化后生成 upsert 预览，确认后写入 \\
-    “记录今天的课堂表现和一次家校沟通。” & \texttt{student-growth} + \texttt{class-data} & 分别形成 growth event 与 parent contact，保留日期和来源 \\
-    “按身高和分组约束重排座位。” & \texttt{class-operations} + \texttt{class-data} & 展示硬约束、冲突和未安排学生，确认后生成带有效日期的安排 \\
-    “根据最近成绩和表现做一份家长会材料。” & \texttt{class-artifacts} + 查询 Skills & 只取必要字段生成 Office 草稿，登记来源记录后再交付 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-在最后一个例子中，文件生成不是数据写入的替代品。产物需要带有来源实体和生成时间；如果用户修改了主数据，应重新生成或明确标记旧产物仍对应哪个版本。
-
-\clearpage
-\section{工程校验与证据边界}
-
-仓库把协议和安装结构做成可以重复运行的检查，而不是只在 README 中描述约定：
-
-\begin{itemize}
-  \item \texttt{scripts/validate\_schema.py} 校验数据协议实例，\texttt{scripts/contract\_test.py} 检查操作和安全约束；
-  \item Codex 插件清单位于 \texttt{.codex-plugin/plugin.json}，每个 \texttt{skills/*/SKILL.md} 都可以单独做格式检查；
-  \item \texttt{tools/setup\_doctor.py} 报告本地工具和连接器状态，不能替代真实账号授权；
-  \item \texttt{references/capability-matrix.md} 明确区分飞书的优先适配与 Notion、Obsidian 的映射和 fixture 状态。
-\end{itemize}
-
-这些检查只能证明仓库结构、协议和 fixture 的一致性，不能证明某个学校已经完成部署，也不能推出学生成绩、班级氛围或教师负担发生了统计意义上的变化。涉及真实学生资料时，仍需要学校的授权、最小化采集、访问控制和人工复核。
-
-\section{局限与后续工作}
-
-当前版本的主要边界如下：
+为了让同一份资料可以反复使用，系统在幕后区分三类内容。老师不需要记住这些名称，但这样的区分能减少重复劳动：
 
 \begin{enumerate}
-  \item 飞书、Notion 和 Obsidian 的连接器权限、API 版本和可用 CLI 由运行环境决定，仓库不代替这些配置；
-  \item 权限角色、字段级审计、家长可见视图和冲突解决仍需结合实际学校流程设计；
-  \item 排座、值日和家长会材料已有规则入口，但复杂模板、版式主题和多轮人工修改尚未形成完整的模板管理层；
-  \item 当前协议支持显式导入、追加、更新、查询和导出，跨后端自动双向同步、自动预警和效果评估不在默认范围内。
+  \item \textbf{学生卡片}：姓名、班级等相对稳定的信息；
+  \item \textbf{发生过的事情}：考试、课堂表现、谈话和家校沟通，每件事都带日期和来源；
+  \item \textbf{当前安排}：座位、值日和班委等有生效日期的安排，旧版本可以回看。
 \end{enumerate}
 
-后续可以围绕三个方向推进：为 Notion 和 Obsidian 增加最小可用初始化及更多 live connector 测试；补充角色与审计模型；在不把 Office 文件当作主数据库的前提下，完善可复用的产物模板和版本比较。
+当老师要求做 PPT 或表格时，文件只是从这些资料中整理出的结果，不能反过来代替原始记录。一次记录可以服务于多种任务：既能出现在某个学生的时间线上，也能被筛选到全班视图，还能成为家长会材料的一部分。
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+      node distance=7mm and 9mm,
+      source/.style={rounded corners=2pt, draw=blue!55!black, fill=blue!10, thick, align=center, minimum height=11mm, text width=2.75cm, font=\small},
+      store/.style={rounded corners=2pt, draw=green!50!black, fill=green!12, thick, align=center, minimum height=13mm, text width=3.2cm, font=\small},
+      result/.style={rounded corners=2pt, draw=orange!65!black, fill=orange!14, thick, align=center, minimum height=11mm, text width=2.75cm, font=\small},
+      arrow/.style={-{Latex[length=2.5mm]}, thick}
+    ]
+    \node[source] (card) {学生卡片\\稳定信息};
+    \node[source, below=of card] (event) {考试、表现、沟通\\带日期的记录};
+    \node[source, below=of event] (arrange) {座位、值日、班委\\带生效日期};
+    \node[store, right=of event, xshift=5mm] (classdata) {班级资料\\一份可追溯的记录};
+    \node[result, right=of classdata, xshift=5mm, yshift=13mm] (timeline) {查一个学生\\看变化};
+    \node[result, right=of classdata, xshift=5mm] (operation) {排座位、值日\\看全班};
+    \node[result, right=of classdata, xshift=5mm, yshift=-13mm] (artifact) {通知、表格、PPT\\可直接修改};
+    \draw[arrow] (card) -- (classdata);
+    \draw[arrow] (event) -- (classdata);
+    \draw[arrow] (arrange) -- (classdata);
+    \draw[arrow] (classdata) -- (timeline);
+    \draw[arrow] (classdata) -- (operation);
+    \draw[arrow] (classdata) -- (artifact);
+  \end{tikzpicture}
+  \caption{一次记录可以被多次使用：查询、班务安排和文件制作都从同一份班级资料出发。}
+  \label{fig:reuse}
+\end{figure}
+
+\subsection{资料可以放在哪里}
+
+一个工作台先选择一个主要存放位置。目前先支持飞书多维表格；Notion 和 Obsidian 也有对应的栏目映射和本地示例。三者不要求同时使用，也不会在没有请求时自动互相覆盖。对老师来说，重要的是知道“哪一处是当前准确信息”，而不是同时维护三份表。
+
+不同工具里的栏目名称可能不同，助手在中间使用一套统一的记录方式。它保证学生是谁、事情发生在什么时候、资料从哪里来、哪些人可以看到等信息不被遗漏。这个统一方式是为了让迁移和后续查询更稳，不要求教师阅读程序代码。
+
+\section{怎样开始，不必一次搬完}
+
+\begin{enumerate}
+  \item \textbf{先选一个起点。}可以从现有的飞书多维表格、Notion 页面或 Obsidian 笔记库开始；没有现成资料时，也可以先用一小份脱敏名单试做。
+  \item \textbf{让正在使用的 AI 助手安装技能包。}Codex、Claude Code、DSH、豆包工作台等环境可以从 GitHub 读取完整 Skill 文件夹；安装提示词已经放在仓库中文 README 的“快速安装”部分。
+  \item \textbf{先做一个具体任务。}例如录入一次小测，或生成一份值日草稿。先看助手能否准确识别学生、日期和受众，再决定是否扩大范围。
+  \item \textbf{把人工确认保留下来。}连接在线资料库需要账号和权限，第一次写入前要检查栏目对应关系。暂时没有资料连接功能时，可以先在本地做预览和文件草稿。
+\end{enumerate}
+
+这样的开始方式符合教师的工作节奏：先解决眼前的一件事，再逐步把重复工作交给助手。它也给老师留下了回到原有表格和笔记的退路。
+
+\section{安全和现实边界}
+
+班级资料涉及未成年人，便利不能替代谨慎。系统遵循几条教师容易检查的规则：
+
+\begin{itemize}
+  \item 新增、修改、迁移和删除前先展示草稿；删除用可追踪的“撤销记录”表示，不直接抹掉历史；
+  \item 电话、地址和证件号码默认少展示，分享给家长或学校时只带任务需要的字段；
+  \item 对学生的记录区分“看到了什么”和“准备怎么做”，不根据一次表现下诊断结论；
+  \item 没有账号或资料连接功能时，助手只能说明如何配置，不能把本地工具存在误说成已经连上飞书、Notion 或 Obsidian；
+  \item 生成的 Office 文件需要标明来源和时间，老师仍应在发送或打印前复核。
+\end{itemize}
+
+这些规则也说明了它不能替代什么：它不能替班主任作出教育判断，不能自动证明学生成绩或班级氛围改善，也不能绕过学校的授权和隐私要求。当前版本的可验证证据主要是仓库结构、统一记录规则、示例资料和格式检查；真实学校部署和课堂效果需要另外设计试用记录与评估。
+
+\section{当前版本与后续工作}
+
+目前仓库把入口、资料整理、学生成长、班务安排、文件制作和三种资料连接方式分成 8 个可独立使用的技能。仓库同时提供安装清单、统一记录规则、示例资料、环境检查和自动检查工具。
+
+目前优先适配飞书多维表格，实际写入需要用户提供账号并完成连接配置；Notion 和 Obsidian 先提供字段对应方式和本地示例。后续工作包括更完整的初始化向导、角色和审计设置、更丰富的文件模板，以及在真实授权环境中的连接测试。
 
 \section{结论}
 
-班主任.Skill v3 将班级治理任务组织成可安装的多 Skill 插件：业务 Skills 负责记录、查询、成长跟进、班务安排和文件生成，适配 Skills 负责把统一协议投影到不同后端。稳定 ID、版本、来源、敏感级别以及预览确认机制，为日常使用提供了可检查的边界。当前版本已经把协议、插件结构和三类后端映射放入同一仓库；实时能力和教育效果仍应依据具体连接器、授权和后续实证逐项验证。
+班主任.skill 面向的是那些熟悉学生和班务、却不想再学习一套技术系统的教师。它把“记一笔、查一遍、排一张表、做一份材料”变成可以用自然语言开始的工作，并在真正修改资料前给老师一个检查机会。对教师而言，最重要的结果不是听起来多复杂的系统，而是资料能否少抄一次、需要时能否找得到、生成的文件能否直接继续修改。
+
+项目按工作分开的几项专长和统一记录方式为这种使用体验提供了基础，但它仍然需要资料连接功能、学校授权和教师复核。把能做的事情说清楚，把还不能保证的事情留下来，才能让它成为一个可以逐步试用的班级工作助手。
 
 \end{document}
