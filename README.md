@@ -1,6 +1,6 @@
 # 班主任.Skill
 
-[English](README.en.md) · [安装说明](INSTALL.md) · [仓库](https://github.com/YZDame/headteacher-skill)
+[English](README.en.md) · [论文](https://github.com/YZDame/headteacher-skill/blob/main/paper/headteacher_skill_paper.pdf)
 
 `headteacher-skill` 是一个面向班级治理的可移植 Agent Skills 插件包。它把班主任工作拆成 5 个业务 Skills 和 3 个后端适配 Skills，并用一套统一的数据协议连接飞书多维表格、Notion 与 Obsidian。每个 Skill 都可以单独发现和安装，也可以作为完整插件一起安装。
 

@@ -1,6 +1,6 @@
 # Headteacher Skill
 
-[中文说明](README.md) · [Installation](INSTALL.md) · [Repository](https://github.com/YZDame/headteacher-skill)
+[中文说明](README.md) · [Paper](https://github.com/YZDame/headteacher-skill/blob/main/paper/headteacher_skill_paper.pdf)
 
 `headteacher-skill` is a portable Agent Skills plugin bundle for class management. It separates five functional Skills from three backend adapters and connects them with one backend-neutral data contract. Each Skill can be discovered and installed independently, or the complete bundle can be installed as a plugin.
 
