@@ -1,0 +1,27 @@
+{
+  "name": "headteacher-workbench",
+  "version": "3.0.0",
+  "description": "Portable class-management skills with a shared data contract and backend adapters.",
+  "author": {
+    "name": "YZDame",
+    "url": "https://github.com/YZDame"
+  },
+  "repository": "https://github.com/YZDame/headteacher-skill",
+  "license": "MIT",
+  "keywords": ["education", "class-management", "headteacher", "feishu", "notion", "obsidian"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Headteacher Workbench",
+    "shortDescription": "Class-management workflows backed by structured student data.",
+    "longDescription": "A portable plugin bundle for student records, growth events, class operations, artifact generation, and Feishu/Notion/Obsidian mappings.",
+    "developerName": "YZDame",
+    "category": "Education",
+    "capabilities": ["Read", "Write", "Generate"],
+    "websiteURL": "https://github.com/YZDame/headteacher-skill",
+    "defaultPrompt": [
+      "Initialize a class-management workspace",
+      "Record a student growth event",
+      "Generate a seat plan from class data"
+    ]
+  }
+}

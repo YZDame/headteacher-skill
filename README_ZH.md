@@ -1,141 +1,43 @@
-<div align="center">
+# Headteacher Workbench
 
-# 班主任.Skill
+`headteacher-skill` 是一个班级管理 Agent Skills 插件包。它把学生数据、成长记录、班务安排和文件生成拆成多个可独立调用的 Skills，并通过统一数据协议适配不同后端。
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://python.org)
-[![AgentSkills](https://img.shields.io/badge/AgentSkills-Standard-green)](https://agentskills.io)
+## 能力包
 
-一个面向教师和班主任的工作台 Skill。  
-它的重点不是“模仿老师说话”，而是帮助教师持续管理学生数据，并按需生成日常需要的文件。
-
-[安装](#安装) · [使用](#使用) · [工作台模型](#工作台模型)
-
-</div>
-
----
-
-## 这是什么
-
-`班主任.Skill` 的核心是两种能力：
-
-1. 数据的记录、读写以及动态读写。  
-   包括一次性导入、日常动态添加、纵向读取某个学生、横向读取部分学生或全班。
-2. 按需生成特定的 Office 文件。  
-   包括排座表、值日表、家长会 PPT，以及其他通知或记录文档。
-
-第一版默认首选接入 **飞书多维表格**。  
-`Notion` 和 `Obsidian` 暂时作为后续开发方向保留。
-
-飞书接入方式会按运行环境自动分流：
-
-- 如果 Skill 运行在 OpenClaw 中，优先检测并使用 OpenClaw 官方飞书插件 `openclaw-lark`
-- 如果 Skill 运行在 Codex、Claude Code 或其他本地 Agent 中，沿用原有 `lark-cli` 方案
-
-## 第一版范围
-
-### 现在可用
-
-- 飞书多维表格工作台初始化
-- 标准班主任数据模型
-- 已有飞书多维表格的迁移检查
-- 本地产物登记
-
-### 后续开发
-
-- Notion：等待后续开发，计划通过 MCP 的方式连接
-- Obsidian：等待后续开发，计划使用 Obsidian 的 CLI
-
-## 工作台模型
-
-第一版围绕这些核心对象展开：
-
-- 学生主档
-- 考试批次
-- 成绩明细
-- 成长事件
-- 家校沟通
-- 座位安排
-- 值日安排
-- 班委任命
-- 产物索引
-
-飞书多维表格是第一后端，但 Skill 本身真正关心的是班级数据和文件生成能力。
+- `headteacher-workbench`：初始化与任务路由
+- `class-data`：名单、考试、成绩和记录的导入、查询、追加、更新
+- `student-growth`：德育表现、谈话、家校沟通和重点学生跟进
+- `class-operations`：座位、值日、班委安排
+- `class-artifacts`：Word、Excel、PPT 产物生成
+- `feishu-adapter`、`notion-adapter`、`obsidian-adapter`：后端映射和配置
 
 ## 安装
 
-不需要手动记复杂命令。  
-如果你在使用 Agent、OpenClaw 或其他类似工具，直接发送下面这句提示词即可：
-
 ```bash
-请帮我安装这个技能：https://github.com/YZDame/headteacher-skill
+npx skills add YZDame/headteacher-skill --list
+npx skills add YZDame/headteacher-skill --skill class-data
 ```
 
-安装完成后，再告诉你的 Agent：
+Codex 可作为插件安装；Claude Code 和 DeepSeek Harness 可直接发现 `skills/<name>/SKILL.md`。DeepSeek Harness 也可以将这些目录复制到项目的 `.dsh/skills` 或 `.agents/skills`。
 
-```bash
-请帮我启用班主任.Skill，并先带我完成飞书多维表格的初始化。
-```
+## 数据协议
 
-如果你是在 OpenClaw 中使用本 Skill，飞书多维表格初始化应优先通过 OpenClaw 官方飞书插件完成，而不是默认要求你安装 `lark-cli`。
+统一协议位于 [`references/data-contract.md`](references/data-contract.md)，机器可校验的 Schema 位于 [`references/schema-manifest.json`](references/schema-manifest.json)。每个工作台选择一个后端作为数据源；协议负责统一实体、ID、时间、溯源、敏感级别和写入语义，v3 不做跨后端自动双向同步。
 
-如果你后续要使用“按需生成文件”这项能力，还需要本地具备 Office 相关的 Skill 套装，用来处理：
+## 后端状态
 
-- `.docx`
-- `.xlsx`
-- `.pptx`
+| 后端 | 状态 |
+|---|---|
+| 飞书多维表格 | 首版真实连接测试，自动路由 API/MCP 或 `lark-cli` |
+| Notion | 数据源/页面映射和 fixture，需外部 API/MCP |
+| Obsidian | Markdown/YAML/Bases 本地投影，需本地 vault |
 
-具体参考: Anthropic Skills 仓库中的 Office 相关 Skill  
-  [https://github.com/anthropics/skills/tree/main/skills](https://github.com/anthropics/skills/tree/main/skills)
+仓库不携带账号、Token 或未经验证的 MCP 配置。请先阅读 [`INSTALL.md`](INSTALL.md) 和 [`references/capability-matrix.md`](references/capability-matrix.md)。
 
-## 使用
+## 安全原则
 
-触发 Skill 后，默认按以下顺序进入：
+敏感字段默认限制展示；批量写入、迁移和删除必须先预览并确认。Office 文件是下游产物，不是数据源。
 
-1. 环境检查
-2. 后端选型
-3. 工作台初始化
-4. 正式运行时任务
+## 许可证
 
-默认首选接入：
-
-- 飞书多维表格
-
-其中飞书多维表格的接入会按环境自动切换：
-
-- OpenClaw -> 官方飞书插件 `openclaw-lark` + 飞书 API
-- Codex / Claude Code / 本地 Agent -> `lark-cli`
-
-后续计划支持：
-
-- Notion
-- Obsidian
-
-典型请求：
-
-- “帮我初始化一个高一 3 班的班主任工作台”
-- “把这份学生名单和历史成绩一次性导入进去”
-- “记一条学生表现：张三今天课后主动来问题”
-- “按时间轴整理一下张三这学期的成绩和表现”
-- “看一下这次月考后全班哪些学生需要重点跟进”
-- “按成绩、性别和身高重新排一个座位表”
-- “根据最近一次考试和这段时间的日常表现生成家长会 PPT”
-
-## 仓库结构
-
-```text
-headteacher-skill/
-├── SKILL.md
-├── prompts/
-├── references/
-├── tools/
-├── docs/
-└── paper/
-```
-
-其中：
-
-- `SKILL.md` 负责触发条件、主流程和运行时路由
-- `prompts/` 负责 setup、迁移、runtime 和文件生成的操作指引
-- `references/` 负责标准模型与规则说明
-- `tools/` 负责初始化、迁移检查和产物登记
+MIT

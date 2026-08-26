@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/YZDame/headteacher-skill/schema/headteacher-data-contract-1.0.json",
+  "title": "Headteacher Data Contract",
+  "type": "object",
+  "required": ["protocol_version", "operation", "request_id", "workspace_id", "emitted_at", "dry_run", "records"],
+  "properties": {
+    "protocol_version": {"const": "1.0"},
+    "operation": {"enum": ["import", "append", "upsert", "query", "tombstone", "export"]},
+    "request_id": {"type": "string", "minLength": 1},
+    "workspace_id": {"type": "string", "minLength": 1},
+    "actor": {"type": "object"},
+    "emitted_at": {"type": "string", "format": "date-time"},
+    "dry_run": {"type": "boolean"},
+    "records": {"type": "array", "items": {"$ref": "#/$defs/record"}}
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "required": ["entity_type", "entity_id", "class_id", "revision", "source", "visibility", "sensitivity", "payload"],
+      "properties": {
+        "entity_type": {"type": "string", "enum": ["class_profile", "student_master", "exam_batch", "score_detail", "growth_event", "parent_contact", "seat_assignment", "duty_assignment", "committee_assignment", "artifact_record"]},
+        "entity_id": {"type": "string", "minLength": 1},
+        "class_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 1},
+        "occurred_at": {"type": ["string", "null"], "format": "date-time"},
+        "source": {"type": "object"},
+        "visibility": {"enum": ["staff", "restricted", "shareable"]},
+        "sensitivity": {"enum": ["public", "internal", "restricted", "highly_restricted"]},
+        "payload": {"type": "object"}
+      },
+      "additionalProperties": false
+    }
+  }
+}
