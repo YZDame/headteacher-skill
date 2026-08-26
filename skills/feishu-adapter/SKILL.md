@@ -6,7 +6,7 @@ license: MIT
 
 # Feishu Adapter
 
-Route through the first available configured connector: compatible API/MCP, then `lark-cli`.
+Route through the first available configured connector: compatible API/MCP, then `lark-cli`. Live writes require user-provided credentials and confirmation.
 
 ## Workflow
 

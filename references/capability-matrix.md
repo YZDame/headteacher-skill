@@ -2,7 +2,7 @@
 
 | Backend | Source type | v3 status | Live prerequisite |
 |---|---|---|---|
-| Feishu Base | Structured tables and records | Live-tested first | Feishu credentials plus API/MCP or `lark-cli` |
+| Feishu Base | Structured tables and records | First prioritized adapter; live writes require credentials | Feishu credentials plus API/MCP or `lark-cli` |
 | Notion | Data sources, pages, properties | Adapter skeleton and fixtures | Connected Notion API/MCP |
 | Obsidian | Markdown, YAML, Bases views | Local projection adapter and fixtures | Local vault; optional Obsidian CLI |
 

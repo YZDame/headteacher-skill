@@ -1,6 +1,6 @@
 # Headteacher Data Contract v1.0
 
-The contract is backend-neutral. Each workspace chooses one backend as its source of truth; adapters project the same records without automatic cross-backend sync.
+The contract is backend-neutral. Each workspace chooses one backend as its source of truth; adapters project the same records without automatic cross-backend sync. The repository does not claim live backend access until a connector and credentials are configured.
 
 ## Envelope
 

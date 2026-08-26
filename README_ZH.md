@@ -28,7 +28,7 @@ Codex 可作为插件安装；Claude Code 和 DeepSeek Harness 可直接发现 `
 
 | 后端 | 状态 |
 |---|---|
-| 飞书多维表格 | 首版真实连接测试，自动路由 API/MCP 或 `lark-cli` |
+| 飞书多维表格 | 首版优先接入，自动路由 API/MCP 或 `lark-cli`；真实写入需账号配置 |
 | Notion | 数据源/页面映射和 fixture，需外部 API/MCP |
 | Obsidian | Markdown/YAML/Bases 本地投影，需本地 vault |
 
