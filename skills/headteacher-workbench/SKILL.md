@@ -4,7 +4,7 @@ description: Set up and route a class-management workspace. Use when a teacher n
 license: MIT
 ---
 
-# Headteacher Workbench
+# 班主任.Skill
 
 Use this skill as the entry point for class-management work.
 

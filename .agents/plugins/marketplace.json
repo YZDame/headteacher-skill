@@ -1,6 +1,6 @@
 {
   "name": "headteacher-local",
-  "interface": {"displayName": "Headteacher Workbench"},
+  "interface": {"displayName": "班主任.Skill"},
   "plugins": [
     {
       "name": "headteacher-workbench",

@@ -1,6 +1,6 @@
 {
   "name": "headteacher-workbench",
-  "version": "3.0.0",
+  "version": "3.0.2",
   "description": "Portable class-management skills with a shared data contract and backend adapters.",
   "author": {
     "name": "YZDame",
@@ -11,7 +11,7 @@
   "keywords": ["education", "class-management", "headteacher", "feishu", "notion", "obsidian"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Headteacher Workbench",
+    "displayName": "班主任.Skill",
     "shortDescription": "Class-management workflows backed by structured student data.",
     "longDescription": "A portable plugin bundle for student records, growth events, class operations, artifact generation, and Feishu/Notion/Obsidian mappings.",
     "developerName": "YZDame",

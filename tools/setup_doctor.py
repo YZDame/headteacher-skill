@@ -34,7 +34,7 @@ def main():
     data = report()
     if args.format == "json": print(json.dumps(data, ensure_ascii=False, indent=2))
     else:
-        print("# Headteacher Workbench doctor\n")
+        print("# 班主任.Skill 环境检查\n")
         print(f"- Supported runtimes: {', '.join(data['runtime']['supported'])}")
         print(f"- Feishu: {data['feishu']['message']}")
         print(f"- Notion: {data['notion']['message']}")

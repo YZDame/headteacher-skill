@@ -53,7 +53,7 @@ def list_artifacts(limit: int) -> List[Dict[str, Any]]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Manage local artifact metadata for the headteacher workbench.")
+    parser = argparse.ArgumentParser(description="Manage local artifact metadata for 班主任.Skill.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     register = subparsers.add_parser("register", help="Register a generated artifact.")

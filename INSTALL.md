@@ -1,4 +1,4 @@
-# Installation
+# 班主任.Skill 安装说明
 
 ## skills.sh / compatible Agents
 
